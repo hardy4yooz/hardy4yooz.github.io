@@ -328,7 +328,10 @@
           
   <div class="comments" id="comments">
     
-  </div>
+      <div id="gitment_container"></div>
+   
+     </div>
+
 
 
         </div>
@@ -596,6 +599,28 @@
 
 
 
+
+
+
+    
+	
+	
+	
+	<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+	<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+	<script>
+	    var gitment = new Gitment({
+	      //id: '页面 ID',
+	      owner: 'hardy4yooz',
+	      repo: 'hardy4yooz.github.io',
+	      oauth: {
+		client_id: 'b1cede1826e00444dd06',
+		client_secret: '9d214ebfc01497fc86cbbcf2b36d73de5a6f4e61'
+	      }
+	    });
+	    gitment.render('gitment_container');
+	</script>
+    
 
 
 
