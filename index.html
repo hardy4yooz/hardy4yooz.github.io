@@ -364,8 +364,7 @@
           <h1 id="scrapy-redis-和-docker-实现简单分布式爬虫"><a href="#scrapy-redis-和-docker-实现简单分布式爬虫" class="headerlink" title="scrapy_redis 和 docker 实现简单分布式爬虫"></a>scrapy_redis 和 docker 实现简单分布式爬虫</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>（以前写的一篇，搬过来）</p>
 <p>在使用 scrapy 爬取 <a href="http://www.itjuzi.com/company" target="_blank" rel="external">IT桔子公司</a>信息，用来进行分析，了解 IT 创业公司的一切情况，之前使用 scrapy 写了一个默认线程是10的单个实例，为了防止被 ban IP 设置了下载的速度，3万多个公司信息爬了1天多才完成，现在想到使用分布式爬虫来提高效率。</p>
 <p><strong><em><a href="https://github.com/hardy4yooz/itjuzi_dis" target="_blank" rel="external">源码githup</a></em></strong></p>
-<p>####技术工具：<code>Python3.5</code> <code>scrapy</code> <code>scrapy_redis</code> <code>redis</code> <code>docker1.12</code> <code>docker-compose</code> <code>Kitematic</code> <code>mysql</code> <code>SQLAlchemy</code></p>
-<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ol>
+<h4 id="技术工具：Python3-5-scrapy-scrapy-redis-redis-docker1-12-docker-compose-Kitematic-mysql-SQLAlchemy"><a href="#技术工具：Python3-5-scrapy-scrapy-redis-redis-docker1-12-docker-compose-Kitematic-mysql-SQLAlchemy" class="headerlink" title="技术工具：Python3.5 scrapy scrapy_redis redis docker1.12 docker-compose Kitematic mysql SQLAlchemy"></a>技术工具：<code>Python3.5</code> <code>scrapy</code> <code>scrapy_redis</code> <code>redis</code> <code>docker1.12</code> <code>docker-compose</code> <code>Kitematic</code> <code>mysql</code> <code>SQLAlchemy</code></h4><h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ol>
 <li>安装 <code>Docker</code> <a href="https://www.docker.com/products/overview" target="_blank" rel="external">点这里</a>去了解、安装;</li>
 <li><code>pip install scrapy scrapy_redis</code>;</li>
 </ol>
