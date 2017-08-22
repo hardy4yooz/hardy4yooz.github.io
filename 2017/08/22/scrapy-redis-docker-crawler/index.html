@@ -102,15 +102,15 @@
 <meta property="og:site_name" content="Hardy&#39;s Notebook">
 <meta property="og:description" content="scrapy_redis 和 docker 实现简单分布式爬虫简介（以前写的一篇，搬过来） 在使用 scrapy 爬取 IT桔子公司信息，用来进行分析，了解 IT 创业公司的一切情况，之前使用 scrapy 写了一个默认线程是10的单个实例，为了防止被 ban IP 设置了下载的速度，3万多个公司信息爬了1天多才完成，现在想到使用分布式爬虫来提高效率。 源码githup ####技术工具：Pyth">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://hardy4yooz.com/2017/08/22/images/4186726111-57ac42e13c49a_articlex.png">
-<meta property="og:image" content="http://hardy4yooz.com/2017/08/22/images/1766407292-57ac4945e328e_articlex.png">
-<meta property="og:image" content="http://hardy4yooz.com/2017/08/22/images/1086668507-57ac49ef29451_articlex.png">
-<meta property="og:image" content="http://hardy4yooz.com/2017/08/22/images/3162307053-57ac4ab7518dc_articlex.png">
-<meta property="og:updated_time" content="2017-08-22T08:42:14.000Z">
+<meta property="og:image" content="http://hardy4yooz.com/images/4186726111-57ac42e13c49a_articlex.png">
+<meta property="og:image" content="http://hardy4yooz.com/images/1766407292-57ac4945e328e_articlex.png">
+<meta property="og:image" content="http://hardy4yooz.com/images/1086668507-57ac49ef29451_articlex.png">
+<meta property="og:image" content="http://hardy4yooz.com/images/3162307053-57ac4ab7518dc_articlex.png">
+<meta property="og:updated_time" content="2017-08-22T08:44:30.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="scrapy_redis-docker-crawler">
 <meta name="twitter:description" content="scrapy_redis 和 docker 实现简单分布式爬虫简介（以前写的一篇，搬过来） 在使用 scrapy 爬取 IT桔子公司信息，用来进行分析，了解 IT 创业公司的一切情况，之前使用 scrapy 写了一个默认线程是10的单个实例，为了防止被 ban IP 设置了下载的速度，3万多个公司信息爬了1天多才完成，现在想到使用分布式爬虫来提高效率。 源码githup ####技术工具：Pyth">
-<meta name="twitter:image" content="http://hardy4yooz.com/2017/08/22/images/4186726111-57ac42e13c49a_articlex.png">
+<meta name="twitter:image" content="http://hardy4yooz.com/images/4186726111-57ac42e13c49a_articlex.png">
 
 
 
@@ -377,7 +377,7 @@
 <li>多个 <code>spider</code> 共享一个 <code>redis</code> <code>list</code> 中的链接；</li>
 </ol>
 <a id="more"></a>
-<p>###目录结构图<br><img src="../images/4186726111-57ac42e13c49a_articlex.png" alt="图片描述"></p>
+<p>###目录结构图<br><img src="/images/4186726111-57ac42e13c49a_articlex.png" alt="图片描述"></p>
 <p>###juzi_spider.py<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># coding:utf-8</span></div><div class="line"></div><div class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</div><div class="line"><span class="keyword">from</span> scrapy.linkextractors <span class="keyword">import</span> LinkExtractor</div><div class="line"><span class="keyword">from</span> scrapy.spiders <span class="keyword">import</span> CrawlSpider, Rule</div><div class="line"></div><div class="line"><span class="keyword">from</span> scrapy_redis.spiders <span class="keyword">import</span> RedisCrawlSpider</div><div class="line"><span class="keyword">from</span> itjuzi_dis.items <span class="keyword">import</span> CompanyItem</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ITjuziSpider</span><span class="params">(RedisCrawlSpider)</span>:</span></div><div class="line">    name = <span class="string">'itjuzi_dis'</span></div><div class="line">    allowed_domains = [<span class="string">'itjuzi.com'</span>]</div><div class="line">    <span class="comment"># start_urls = ['http://www.itjuzi.com/company/157']</span></div><div class="line">    redis_key = <span class="string">'itjuziCrawler:start_urls'</span></div><div class="line">    rules = [</div><div class="line">        <span class="comment"># 获取每一页的链接</span></div><div class="line">        Rule(link_extractor=LinkExtractor(allow=(<span class="string">'/company\?page=\d+'</span>))),</div><div class="line">        <span class="comment"># 获取每一个公司的详情</span></div><div class="line">        Rule(link_extractor=LinkExtractor(allow=(<span class="string">'/company/\d+'</span>)), callback=<span class="string">'parse_item'</span>)</div><div class="line">    ]</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse_item</span><span class="params">(self, response)</span>:</span></div><div class="line">        soup = BeautifulSoup(response.body, <span class="string">'lxml'</span>)</div><div class="line"></div><div class="line">         .</div><div class="line">         .省略一些处理代码</div><div class="line">         .</div><div class="line">        <span class="keyword">return</span> item</div></pre></td></tr></table></figure></p>
 <p><strong>说明：</strong> </p>
 <ol>
@@ -408,11 +408,11 @@
 <p>###开始部署</p>
 <p><strong>启动 container</strong><br>    docker-compose up #从 docker-compose.yml 中创建 <code>container</code> 们<br>    docker-compose scale spider=4 #将 spider 这一个服务扩展到4个，还是同一个 redis</p>
 <p> 可以在 <code>Kitematic</code> GUI 工具中观察创建和运行情况；</p>
-<p><img src="../images/1766407292-57ac4945e328e_articlex.png" alt="图片描述"></p>
+<p><img src="/images/1766407292-57ac4945e328e_articlex.png" alt="图片描述"></p>
 <p> 在没有设置 <code>start_urls</code> 时，4个 <code>container</code> 中的爬虫都处于饥渴的等待状态</p>
-<p><img src="../images/1086668507-57ac49ef29451_articlex.png" alt="图片描述"></p>
+<p><img src="/images/1086668507-57ac49ef29451_articlex.png" alt="图片描述"></p>
 <p>现在给 <code>redis</code> 中放入 <code>start_urls</code>:<br>    lpush itjuziCrawler:start_urls <a href="http://www.itjuzi.com/company" target="_blank" rel="external">http://www.itjuzi.com/company</a></p>
-<p>4个爬虫都动起来了，一直爬到<code>start_urls</code>为空<br><img src="../images/3162307053-57ac4ab7518dc_articlex.png" alt="图片描述"></p>
+<p>4个爬虫都动起来了，一直爬到<code>start_urls</code>为空<br><img src="/images/3162307053-57ac4ab7518dc_articlex.png" alt="图片描述"></p>
 <p>以上です！ありがとうございました！</p>
 
       
