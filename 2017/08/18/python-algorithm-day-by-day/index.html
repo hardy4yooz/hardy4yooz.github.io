@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="algorithm,python," />
 
 
 
@@ -94,17 +94,18 @@
 
 
 
-<meta name="description" content="积累 分享">
-<meta property="og:type" content="website">
-<meta property="og:title" content="TagCloud">
-<meta property="og:url" content="http://hardy4yooz.com/tags/index.html">
+<meta name="description" content="Python 算法题 找出100w 个数字中的最大的前100  12345import heapqimport randomdef top100():    data_list = [random.randint(0, 1000000) for x in range(1000000)] # 随机产生100w个数据    return heapq.nlargest(100, data_list)">
+<meta name="keywords" content="algorithm,python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python-algorithm-day-by-day">
+<meta property="og:url" content="http://hardy4yooz.com/2017/08/18/python-algorithm-day-by-day/index.html">
 <meta property="og:site_name" content="Hardy&#39;s Notebook">
-<meta property="og:description" content="积累 分享">
+<meta property="og:description" content="Python 算法题 找出100w 个数字中的最大的前100  12345import heapqimport randomdef top100():    data_list = [random.randint(0, 1000000) for x in range(1000000)] # 随机产生100w个数据    return heapq.nlargest(100, data_list)">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-08-16T09:02:48.000Z">
+<meta property="og:updated_time" content="2017-08-18T03:17:15.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="TagCloud">
-<meta name="twitter:description" content="积累 分享">
+<meta name="twitter:title" content="python-algorithm-day-by-day">
+<meta name="twitter:description" content="Python 算法题 找出100w 个数字中的最大的前100  12345import heapqimport randomdef top100():    data_list = [random.randint(0, 1000000) for x in range(1000000)] # 随机产生100w个数据    return heapq.nlargest(100, data_list)">
 
 
 
@@ -133,13 +134,13 @@
 
 
 
-  <link rel="canonical" href="http://hardy4yooz.com/tags/"/>
+  <link rel="canonical" href="http://hardy4yooz.com/2017/08/18/python-algorithm-day-by-day/"/>
 
 
 
 
 
-  <title>TagCloud | Hardy's Notebook</title>
+  <title>python-algorithm-day-by-day | Hardy's Notebook</title>
   
 
 
@@ -278,40 +279,153 @@
 
   <div id="posts" class="posts-expand">
     
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://hardy4yooz.com/2017/08/18/python-algorithm-day-by-day/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Hardy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hardy's Notebook">
+    </span>
+
     
-    
-    <div class="post-block page">
       <header class="post-header">
 
-	<h1 class="post-title" itemprop="name headline">TagCloud</h1>
-
-
-
-</header>
-
-      
-      
-      
-      <div class="post-body">
         
         
-          <div class="tag-cloud">
-            <div class="tag-cloud-title">
-                目前共计 6 个标签
-            </div>
-            <div class="tag-cloud-tags">
-              <a href="/tags/Python/" style="font-size: 12px; color: #ccc">Python</a> <a href="/tags/algorithm/" style="font-size: 12px; color: #ccc">algorithm</a> <a href="/tags/docker/" style="font-size: 12px; color: #ccc">docker</a> <a href="/tags/mysql/" style="font-size: 12px; color: #ccc">mysql</a> <a href="/tags/python/" style="font-size: 12px; color: #ccc">python</a> <a href="/tags/scrapy/" style="font-size: 12px; color: #ccc">scrapy</a>
-            </div>
-          </div>
+          <h1 class="post-title" itemprop="name headline">python-algorithm-day-by-day</h1>
         
-      </div>
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-18T11:11:12+08:00">
+                2017-08-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
       
       
+
+      
+        <h2 id="Python-算法题"><a href="#Python-算法题" class="headerlink" title="Python 算法题"></a>Python 算法题</h2><ul>
+<li>找出100w 个数字中的最大的前100</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> heapq</div><div class="line"><span class="keyword">import</span> random</div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">top100</span><span class="params">()</span>:</span></div><div class="line">    data_list = [random.randint(<span class="number">0</span>, <span class="number">1000000</span>) <span class="keyword">for</span> x <span class="keyword">in</span> range(<span class="number">1000000</span>)] <span class="comment"># 随机产生100w个数据</span></div><div class="line">    <span class="keyword">return</span> heapq.nlargest(<span class="number">100</span>, data_list)</div></pre></td></tr></table></figure>
+
       
     </div>
     
     
     
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/algorithm/" rel="tag"># algorithm</a>
+          
+            <a href="/tags/python/" rel="tag"># python</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/16/what-is-super-in-python/" rel="next" title="what-is-super-in-python">
+                <i class="fa fa-chevron-left"></i> what-is-super-in-python
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/22/scrapy-redis-docker-crawler/" rel="prev" title="scrapy_redis-docker-crawler">
+                scrapy_redis-docker-crawler <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
   </div>
 
 
@@ -320,6 +434,12 @@
 
 
           
+  <div class="comments" id="comments">
+    
+      <div id="gitment_container"></div>
+   
+     </div>
+
 
 
         </div>
@@ -341,8 +461,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.jpg"
@@ -419,6 +548,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Python-算法题"><span class="nav-number">1.</span> <span class="nav-text">Python 算法题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -549,10 +694,10 @@
 
 
   
-    <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
 <script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
 
-  
+
 
   
 
@@ -590,6 +735,24 @@
 
 
 
+    
+	
+	
+	
+	<link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+	<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+	<script>
+	    var gitment = new Gitment({
+	      //id: '页面 ID',
+	      owner: 'hardy4yooz',
+	      repo: 'hardy4yooz.github.io',
+	      oauth: {
+		client_id: 'b1cede1826e00444dd06',
+		client_secret: '9d214ebfc01497fc86cbbcf2b36d73de5a6f4e61'
+	      }
+	    });
+	    gitment.render('gitment_container');
+	</script>
     
 
 

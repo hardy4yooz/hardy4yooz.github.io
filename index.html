@@ -291,6 +291,425 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://hardy4yooz.com/2017/08/22/scrapy-redis-docker-crawler/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Hardy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hardy's Notebook">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/22/scrapy-redis-docker-crawler/" itemprop="url">scrapy_redis-docker-crawler</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-22T16:18:12+08:00">
+                2017-08-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="scrapy-redis-和-docker-实现简单分布式爬虫"><a href="#scrapy-redis-和-docker-实现简单分布式爬虫" class="headerlink" title="scrapy_redis 和 docker 实现简单分布式爬虫"></a>scrapy_redis 和 docker 实现简单分布式爬虫</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>（以前写的一篇，搬过来）</p>
+<p>在使用 scrapy 爬取 <a href="http://www.itjuzi.com/company" target="_blank" rel="external">IT桔子公司</a>信息，用来进行分析，了解 IT 创业公司的一切情况，之前使用 scrapy 写了一个默认线程是10的单个实例，为了防止被 ban IP 设置了下载的速度，3万多个公司信息爬了1天多才完成，现在想到使用分布式爬虫来提高效率。</p>
+<p><strong><em><a href="https://github.com/hardy4yooz/itjuzi_dis" target="_blank" rel="external">源码githup</a></em></strong></p>
+<p>####技术工具：<code>Python3.5</code> <code>scrapy</code> <code>scrapy_redis</code> <code>redis</code> <code>docker1.12</code> <code>docker-compose</code> <code>Kitematic</code> <code>mysql</code> <code>SQLAlchemy</code></p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ol>
+<li>安装 <code>Docker</code> <a href="https://www.docker.com/products/overview" target="_blank" rel="external">点这里</a>去了解、安装;</li>
+<li><code>pip install scrapy scrapy_redis</code>;</li>
+</ol>
+<h2 id="代码编写"><a href="#代码编写" class="headerlink" title="代码编写"></a>代码编写</h2><ol>
+<li>分析页面信息：<br>我需要获取的是每一个「公司」的详情页面链接 和 分页按钮链接；</li>
+<li>统一存储获取到的链接，提供给多个 <code>spider</code> 爬取；</li>
+<li>多个 <code>spider</code> 共享一个 <code>redis</code> <code>list</code> 中的链接；</li>
+</ol>
+<p>###目录结构图<br><img src="https://segmentfault.com/img/bVAlLY?w=980&amp;amp;h=640" alt="图片描述"></p>
+<p>###juzi_spider.py<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># coding:utf-8</span></div><div class="line"></div><div class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</div><div class="line"><span class="keyword">from</span> scrapy.linkextractors <span class="keyword">import</span> LinkExtractor</div><div class="line"><span class="keyword">from</span> scrapy.spiders <span class="keyword">import</span> CrawlSpider, Rule</div><div class="line"></div><div class="line"><span class="keyword">from</span> scrapy_redis.spiders <span class="keyword">import</span> RedisCrawlSpider</div><div class="line"><span class="keyword">from</span> itjuzi_dis.items <span class="keyword">import</span> CompanyItem</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ITjuziSpider</span><span class="params">(RedisCrawlSpider)</span>:</span></div><div class="line">    name = <span class="string">'itjuzi_dis'</span></div><div class="line">    allowed_domains = [<span class="string">'itjuzi.com'</span>]</div><div class="line">    <span class="comment"># start_urls = ['http://www.itjuzi.com/company/157']</span></div><div class="line">    redis_key = <span class="string">'itjuziCrawler:start_urls'</span></div><div class="line">    rules = [</div><div class="line">        <span class="comment"># 获取每一页的链接</span></div><div class="line">        Rule(link_extractor=LinkExtractor(allow=(<span class="string">'/company\?page=\d+'</span>))),</div><div class="line">        <span class="comment"># 获取每一个公司的详情</span></div><div class="line">        Rule(link_extractor=LinkExtractor(allow=(<span class="string">'/company/\d+'</span>)), callback=<span class="string">'parse_item'</span>)</div><div class="line">    ]</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse_item</span><span class="params">(self, response)</span>:</span></div><div class="line">        soup = BeautifulSoup(response.body, <span class="string">'lxml'</span>)</div><div class="line"></div><div class="line">         .</div><div class="line">         .省略一些处理代码</div><div class="line">         .</div><div class="line">        <span class="keyword">return</span> item</div></pre></td></tr></table></figure></p>
+<p><strong>说明：</strong> </p>
+<ol>
+<li><code>class</code> 继承了<code>RedisCrawlSpider</code> 而不是<code>CrawlSpider</code></li>
+<li><code>start_urls</code> 改为一个自定义的 <code>itjuziCrawler:start_urls</code>,这里的<code>itjuziCrawler:start_urls</code> 就是作为所有链接存储到 <code>redis</code> 中的 <code>key</code>,<code>scrapy_redis</code> 里也是通过<code>redis</code>的 <code>lpop</code>方法弹出并删除链接的；</li>
+</ol>
+<p>###db_util.py<br>使用 <code>SQLAlchemy</code> 作为 <code>ORM</code> 工具，当表结构不存在时，自动创建表结构</p>
+<p>###middlewares.py<br>增加了很多 <code>User-Agent</code>，每一个请求随机使用一个，防止防止网站通过 <code>User-Agent</code> 屏蔽爬虫</p>
+<p>###settings.py<br>配置<code>middlewares.py</code> <code>scrapy_redis</code> <code>redis</code> 链接相关信息</p>
+<p>##部署<br>在上面的「目录结构图」中有，<code>Dockerfile</code>和<code>docker-compose.yml</code></p>
+<h3 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h3><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">FROM</span> python:<span class="number">3.5</span></div><div class="line"><span class="keyword">ENV</span> PATH /usr/local/bin:$PATH</div><div class="line"><span class="keyword">ADD</span><span class="bash"> . /code</span></div><div class="line"><span class="bash">WORKDIR /code</span></div><div class="line"><span class="bash">RUN pip install -r requirements.txt</span></div><div class="line"><span class="bash">COPY spiders.py /usr/<span class="built_in">local</span>/lib/python3.5/site-packages/scrapy_redis</span></div><div class="line"><span class="bash">CMD /usr/<span class="built_in">local</span>/bin/scrapy crawl itjuzi_dis</span></div></pre></td></tr></table></figure>
+<p><strong>说明：</strong> </p>
+<ul>
+<li>使用 <code>python3.5</code>作为基础镜像</li>
+<li>将<code>/usr/local/bin</code>设置环境变量</li>
+<li>映射 <code>host</code> 和 <code>container</code> 的目录</li>
+<li>安装 <code>requirements.txt</code></li>
+<li>特别要说明的是<code>COPY spiders.py /usr/local/lib/python3.5/site-packages/scrapy_redis</code>，将 <code>host</code> 中的 <code>spiders.py</code> 拷贝到<code>container</code> 中的 <code>scrapy_redis</code> 安装目录中，因为 <code>lpop</code> 获取<code>redis</code> 的值在 <code>python2</code>中是 <code>str</code> 类型，而在 <code>python3</code>中是 <code>bytes</code> 类型，这个问题在 <code>scrapy_reids</code> 中需要修复，<code>spiders.py</code> 第84行需要修改；</li>
+<li>启动后立即执行爬行命令 <code>scrapy crawl itjuzi_dis</code></li>
+</ul>
+<h3 id="docker-compose-yml"><a href="#docker-compose-yml" class="headerlink" title="docker-compose.yml"></a>docker-compose.yml</h3><figure class="highlight dts"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="symbol">version:</span> <span class="string">'2'</span></div><div class="line"><span class="symbol">services:</span></div><div class="line"><span class="symbol">  spider:</span></div><div class="line"><span class="symbol">    build:</span> .</div><div class="line"><span class="symbol">    volumes:</span></div><div class="line">     - .:/code</div><div class="line"><span class="symbol">    links:</span></div><div class="line">     - redis</div><div class="line"><span class="symbol">    depends_on:</span></div><div class="line">     - redis</div><div class="line"><span class="symbol">  redis:</span></div><div class="line"><span class="symbol">    image:</span> redis</div><div class="line"><span class="symbol">    ports:</span></div><div class="line">    - <span class="string">"6379:6379"</span></div></pre></td></tr></table></figure>
+<p><strong>说明:</strong></p>
+<ul>
+<li>使用第2版本的 <code>compose</code> 描述语言</li>
+<li>定义了 <code>spider</code> 和 <code>redis</code> 两个 <code>service</code></li>
+<li><code>spider</code>默认使用当前目录的 <code>Dockerfile</code> 来创建，<code>redis</code>使用 <code>redis:latest</code> 镜像创建，并都映射6379端口</li>
+</ul>
+<p>###开始部署</p>
+<p><strong>启动 container</strong><br>    docker-compose up #从 docker-compose.yml 中创建 <code>container</code> 们<br>    docker-compose scale spider=4 #将 spider 这一个服务扩展到4个，还是同一个 redis</p>
+<p> 可以在 <code>Kitematic</code> GUI 工具中观察创建和运行情况；</p>
+<p><img src="https://segmentfault.com/img/bVAlSh?w=2538&amp;amp;h=1384" alt="图片描述"></p>
+<p> 在没有设置 <code>start_urls</code> 时，4个 <code>container</code> 中的爬虫都处于饥渴的等待状态</p>
+<p><img src="https://segmentfault.com/img/bVAlS7?w=1286&amp;amp;h=262" alt="图片描述"></p>
+<p>现在给 <code>redis</code> 中放入 <code>start_urls</code>:<br>    lpush itjuziCrawler:start_urls <a href="http://www.itjuzi.com/company" target="_blank" rel="external">http://www.itjuzi.com/company</a></p>
+<p>4个爬虫都动起来了，一直爬到<code>start_urls</code>为空<br><img src="https://segmentfault.com/img/bVAlUh?w=1244&amp;amp;h=694" alt="图片描述"></p>
+<p>以上です！ありがとうございました！</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://hardy4yooz.com/2017/08/18/python-algorithm-day-by-day/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Hardy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hardy's Notebook">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/18/python-algorithm-day-by-day/" itemprop="url">python-algorithm-day-by-day</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-18T11:11:12+08:00">
+                2017-08-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="Python-算法题"><a href="#Python-算法题" class="headerlink" title="Python 算法题"></a>Python 算法题</h2><ul>
+<li>找出100w 个数字中的最大的前100</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> heapq</div><div class="line"><span class="keyword">import</span> random</div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">top100</span><span class="params">()</span>:</span></div><div class="line">    data_list = [random.randint(<span class="number">0</span>, <span class="number">1000000</span>) <span class="keyword">for</span> x <span class="keyword">in</span> range(<span class="number">1000000</span>)] <span class="comment"># 随机产生100w个数据</span></div><div class="line">    <span class="keyword">return</span> heapq.nlargest(<span class="number">100</span>, data_list)</div></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://hardy4yooz.com/2017/08/16/what-is-super-in-python/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Hardy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hardy's Notebook">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/16/what-is-super-in-python/" itemprop="url">what-is-super-in-python</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-16T23:45:15+08:00">
+                2017-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="理解-Python-中的-super"><a href="#理解-Python-中的-super" class="headerlink" title="理解 Python 中的 super"></a>理解 Python 中的 super</h1><h2 id="Why"><a href="#Why" class="headerlink" title="Why"></a>Why</h2><p>之前经常在代码中按照套路的使用<code>super</code> ，但是并没有很好的去理解<code>super</code> 的到底是什么，阅读了大神的文章加上自己的理解，准备记录一下。</p>
+<p><a href="https://rhettinger.wordpress.com/2011/05/26/super-considered-super/" target="_blank" rel="external">https://rhettinger.wordpress.com/2011/05/26/super-considered-super/</a></p>
+<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
+<li><code>super</code> 可以实现无需指定 superclass 的方法名调用 superclass 的方法</li>
+<li>只适合新式类</li>
+</ul>
+<h2 id="MRO"><a href="#MRO" class="headerlink" title="MRO"></a>MRO</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span>:</span></div></pre></td></tr></table></figure>
+<p>从字面理解<code>super()</code> 就是用来调用 superclass 的，但是 Python 是可以多继承的，在有多个superclass 的时候，怎么确定<code>super().say()</code> </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://hardy4yooz.com/2017/08/16/mysql-optimize/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -461,7 +880,7 @@ select * from t_wjjl_jbxx;
           
             <div class="site-state-item site-state-posts">
               <a href="/">
-                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-count">4</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -474,7 +893,7 @@ select * from t_wjjl_jbxx;
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-count">6</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
